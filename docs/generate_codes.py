@@ -1,9 +1,11 @@
 
 import random
-random.seed(12233445)
+random.seed(64783462263)
 
 code_len = 10
 codes_count = 320
+
+expid = "expid_111"
 
 def generate_codes(codes_count=320):
     d = list(map(str, range(10))) + [chr(ord("a")+i) for i in range(26)]
@@ -11,16 +13,19 @@ def generate_codes(codes_count=320):
     
 
 def generate_csv_format(codes):
-    liens = ["Your Prolific PID,{}".format(c) for c in codes]
+    liens = ["{}".format(c) for c in codes]
     print("\n".join(liens))
 
 # prapare for PostgreSQL
 def generate_postgresql_format(codes):
-    print ("INSERT INTO codes (code) VALUES")
-    print(",\n".join(["(\'" + c + "\')" for c in codes]))
+    print ("INSERT INTO human_ai_interactions_lab_codes (code, expid) VALUES")
+    print(",\n".join([f'(\'{c}\',\'{expid}\')' for c in codes]))
     print (";")
     
 codes = generate_codes(codes_count * 2)
 codes = codes[codes_count:]
+print("================")
 generate_csv_format(codes)
+print("================")
 generate_postgresql_format(codes)
+print("================")

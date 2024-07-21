@@ -1,39 +1,19 @@
 
-CREATE TABLE results (
-    uuid        integer,
+CREATE TABLE human_ai_interactions_lab_results (
+    uuid        integer NOT NULL,
+    expid       varchar(256),
     userid      varchar(256),
-    result      json
+    result      json NOT NULL
 );
 
 
-CREATE TABLE codes (
-    code      varchar(256) NOT NULL,
+CREATE TABLE human_ai_interactions_lab_codes (
+    code        varchar(256) NOT NULL,
+    expid       varchar(256),
     completed   json,
-    PRIMARY KEY (code)
+    PRIMARY KEY (code, expid)
 );
-
-
-# generate codes - python:
-import random
-random.seed(12233445)
-d = list(map(str, range(10))) + [chr(ord("a")+i) for i in range(26)]
-for i in range(100):
-    print("(\'" + "".join([d[random.randint(0, len(d)-1)]  for i in range(10)]) + "\'),")
-
-INSERT INTO codes (code) VALUES 
-('i7eykhmphz'),
-('oarrnevoo9'),
-('48x6bsscue'),
-('02tizjzqj0'),
-('x5rzoqq2nh'),
-('upk7yujh2a'),
-('mnqo1zxxwg'),
-('v1jrcv5oxj'),
-('thova77bsj'),
-('a0gxdz6emj'),
-('tvag68f0of')
-;
 
 
 # fetch results 
-select * from codes join results on codes.completed->>'uid' = CAST(results.uuid AS TEXT);
+select * from human_ai_interactions_lab_codes join human_ai_interactions_lab_results on human_ai_interactions_lab_codes.completed->>'uid' = CAST(resuhuman_ai_interactions_lab_resultslts.uuid AS TEXT);

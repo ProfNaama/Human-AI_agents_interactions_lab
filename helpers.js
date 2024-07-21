@@ -167,8 +167,13 @@ function getUserTaskDescription(req) {
     return getFirstCsvRecordValue(getTreatmentGroupCsvRecords(req), "user_task_description");
 }
 
-function isUserPreferencesActive(req) {
-    return getFirstCsvRecordValue(getTreatmentGroupCsvRecords(req), "choose_preferences") === "1";
+function getUserPreferences(req) {
+    return {
+        "user_name": getFirstCsvRecordValue(getTreatmentGroupCsvRecords(req), "user_name"),
+        "user_avatar": getFirstCsvRecordValue(getTreatmentGroupCsvRecords(req), "user_avatar"),
+        "agent_name": getFirstCsvRecordValue(getTreatmentGroupCsvRecords(req), "agent_name"),
+        "agent_avatar": getFirstCsvRecordValue(getTreatmentGroupCsvRecords(req), "agent_avatar")
+    };
 }
 
 
@@ -259,8 +264,8 @@ function saveSessionResults(req) {
         }); 
         
         const query = {
-            text: 'INSERT INTO results (uuid, userid, result) VALUES ($1, $2, $3)',
-            values: [sessionResultObj.uid, sessionResultObj.userid, sessionResultObj]
+            text: 'INSERT INTO ' + config.resultsTable + ' (uuid, expid, userid, result) VALUES ($1, $2, $3, $4)',
+            values: [sessionResultObj.uid, config.experimentId, sessionResultObj.userid, sessionResultObj]
         }
     
         pool.query(query, (error) => {
@@ -290,8 +295,8 @@ async function isCodeValid(code) {
             }); 
             
             const query = {
-                text: 'SELECT completed FROM codes WHERE code = $1',
-                values: [code]
+                text: 'SELECT completed FROM ' + config.codesTable + ' WHERE code = $1 and expid = $2',
+                values: [code, config.experimentId]
             }
         
             const result = await new Promise((resolve, reject) => {
@@ -322,8 +327,8 @@ async function setCodeCompleted(code, obj) {
         }); 
         
         const query = {
-            text: 'UPDATE codes SET completed = $2 WHERE code = $1',
-            values: [code, obj]
+            text: 'UPDATE ' + config.codesTable + ' SET completed = $3 WHERE code = $1 and expid = $2',
+            values: [code, config.experimentId, obj]
         }
     
         const result = await new Promise((resolve, reject) => {
@@ -361,6 +366,6 @@ module.exports = {
     setCodeCompleted,
     getRenderingParamsForPage,
     getUserTaskDescription,
-    isUserPreferencesActive,
+    getUserPreferences,
     getUserTestQuestions
 }

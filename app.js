@@ -155,27 +155,33 @@ function verifyUserConsent(req, res, next) {
     next();
 };
 
-const agent_random_selection_array = [
-    {"user_name": "you", "user_avatar_image_name": "user_no_bias_photo.png", "agent_name": "Hannah", "agent_avatar_image_name" : "agent_avatar_5.png"},
-    {"user_name": "you", "user_avatar_image_name": "user_no_bias_photo.png", "agent_name": "Emma", "agent_avatar_image_name" : "agent_avatar_18.png"},
-    {"user_name": "you", "user_avatar_image_name": "user_no_bias_photo.png", "agent_name": "Abigail", "agent_avatar_image_name" : "agent_avatar_16.png"},
-    {"user_name": "you", "user_avatar_image_name": "user_no_bias_photo.png", "agent_name": "Andrew", "agent_avatar_image_name" : "agent_avatar_1.png"},
-    {"user_name": "you", "user_avatar_image_name": "user_no_bias_photo.png", "agent_name": "Ethan", "agent_avatar_image_name" : "agent_avatar_14.png"},
-    {"user_name": "you", "user_avatar_image_name": "user_no_bias_photo.png", "agent_name": "Joe", "agent_avatar_image_name" : "agent_avatar_6.png"}
-];
-
 // Middlewares to be executed for every request to the app, making sure the session is initialized with user preferences.
 async function verifyUserPreferences(req, res, next) {
+    const defaultUserName = "you";
+    const defaultUserAvatar = "user_no_bias_photo.png";
+
+
     if (!req.session.preferences) {
-        if (!helpers.isUserPreferencesActive(req) || (req.path === "/user_preferences" && req.method === "POST")) {
+        const userPreference = helpers.getUserPreferences(req);
+        if (userPreference["user_name"] && userPreference["user_avatar"]) {
+            req.session.preferences = {
+                "user_name": userPreference["user_name"],
+                "user_avatar": helpers.getAvatarImageFullPath(userPreference["user_avatar"]),
+                "agent_name": userPreference["agent_name"],
+                "agent_avatar": helpers.getAvatarImageFullPath(userPreference["agent_avatar"])
+            };
+            req.session.save();
+            res.redirect(302, "/");
+            return;
+        }
+        else if (req.path === "/user_preferences" && req.method === "POST") {
             const agent_avatars = await helpers.listAvatars(true);
             const user_avatars = await helpers.listAvatars(false);
-            const random_assignment = agent_random_selection_array[helpers.getRandomInt(0, agent_random_selection_array.length)];
             req.session.preferences = {
-                "user_name": random_assignment["user_name"],
-                "user_avatar": helpers.getAvatarImageFullPath(random_assignment["user_avatar_image_name"]),
-                "agent_name": random_assignment["agent_name"],
-                "agent_avatar": helpers.getAvatarImageFullPath(random_assignment["agent_avatar_image_name"])
+                "user_name": defaultUserName,
+                "user_avatar": helpers.getAvatarImageFullPath(defaultUserAvatar),
+                "agent_name": userPreference["agent_name"],
+                "agent_avatar": helpers.getAvatarImageFullPath(userPreference["agent_avatar"])
             };
             
             Object.keys(req.body).forEach(key => {
@@ -210,9 +216,9 @@ async function renderUserPreferencesPage(req, res) {
     // user preferences page. consists of (1) user preferences and (2) agent configuration.
     
     // (1) user preferences: the name and image of the agent.
-    const agent_avatars = await helpers.listAvatars(true);
+    const user_avatars = await helpers.listAvatars(false);
     let renderParams = helpers.getRenderingParamsForPage("user_preferences");
-    renderParams["agent_avatar"] = agent_avatars;
+    renderParams["user_avatars"] = user_avatars;
 
     // (2) agent configuration: the user might be required to choose some properties according to the treatment group configuration.
     const filteredRecords = helpers.getSelectedRecords(req);
