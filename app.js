@@ -268,9 +268,10 @@ app.post('/chat-api', async (req, res) => {
     try {
         const chatCompletion = await openai.chat.completions.create({
             messages: messageWithContext,
-            model: 'gpt-3.5-turbo',
+            //model: 'gpt-3.5-turbo',
             //model: "gpt-3.5-turbo-0125",
             //model: "gpt-4",
+            model: "gpt-4o",
             max_tokens: config.apiTokenLimit,
             temperature: 0.7
         });
